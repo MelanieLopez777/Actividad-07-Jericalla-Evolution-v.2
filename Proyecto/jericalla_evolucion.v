@@ -4,13 +4,19 @@
 
 module jericalla_evolucion(
     input wire clk,
-	input wire reset, //<-- Se agrega el reset para el contador del programa
-    input wire [18:0] instruction,
+	input wire reset,
+    input wire [6:0] cantidad_instrucciones,
 
     output [31:0] data_out,
     output zf
 );
 
+// Cables Contador de programa
+wire [6:0] wire_pc_o_contador;
+wire wire_pc_read_e_mem_instrucciones;
+
+// Cables Memoria de Instrucciones
+wire [18:0] wire_mi_instruction;
 
 // Cables Unidad de Control
 wire        wire_cu_write_enable_rb;
@@ -43,22 +49,35 @@ wire        wire_buffer_2_uc_e_write_br;
 wire [31:0] wire_buffer_2_address_ram;
 wire [31:0] wire_buffer_2_din_ram;
 
-
 // Cables Demultiplexor
 wire [31:0] wire_demux_data_ram;
 wire [31:0] wire_demux_data_alu;
 
-
-//Cables Demultiplexor 2   //<---
-
+//Cables Demultiplexor 2
 wire wire_demux2_dout;
 
 // Cables ALU
 wire [31:0] wire_alu_result;
 
+contador_de_programa contador_de_programa_inst
+(
+	.clk(clk),
+	.reset(reset),
+    .cantidad_instrucciones(cantidad_instrucciones),
+	.o_contador(wire_pc_o_contador),
+    .read_e_mem_instrucciones(wire_pc_read_e_mem_instrucciones)
+);
+
+memoria_de_instrucciones memoria_de_instrucciones_inst
+(
+	.read_enable(wire_pc_read_e_mem_instrucciones),
+    .address(wire_pc_o_contador),
+    .o_data(wire_mi_instruction)
+);
+
 unidad_control unidad_control_inst
 (
-	.instruction(instruction[18:15]),
+	.instruction(wire_mi_instruction[18:15]),
 	.write_enable_RB(wire_cu_write_enable_rb),
 	.read_ram(wire_cu_read_ram),
 	.write_ram(wire_cu_write_ram),
@@ -74,9 +93,9 @@ contador contador_inst(
 );
 
 banco_de_registros banco_de_registros_inst(
-    .read_address_1(instruction[9:5]),
-    .read_address_2(instruction[4:0]),
-    .write_address(instruction[14:10]), 
+    .read_address_1(wire_mi_instruction[9:5]),
+    .read_address_2(wire_mi_instruction[4:0]),
+    .write_address(wire_mi_instruction[14:10]), 
     .data_write(wire_alu_result),
     .write_enable(wire_demux2_dout), 
     .data_register_1(wire_rb_data_register_1),
