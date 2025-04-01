@@ -77,7 +77,7 @@ always @* begin
 			write_enable_RB = 1'b0;		
 			read_ram = 1'b1;
 			write_ram = 1'b0;
-			alu_opcode = 4'bxxxx; //SW
+			alu_opcode = 4'bxxxx; //LW
 			demultiplexor = 1'b1;
 		end	
 	default:
